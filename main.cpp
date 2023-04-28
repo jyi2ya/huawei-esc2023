@@ -101,7 +101,9 @@ struct Mission {
   int ansChannel;
   std::vector<int> ansEdges;
   std::vector<int> ansAmplifier;
+  int i;
 } missions[MAX_MISSION_NUM];
+int missionsOriginIndex[MAX_MISSION_NUM];
 std::vector<int> edgeFromNode[MAX_NODE_NUM];
 /************************************* Definition End *************************************/
 
@@ -133,6 +135,16 @@ void input() {
   for (int i = 0; i < missionNum; i++) {
     read(missions[i].s, missions[i].t);
     missions[i].solved = false;
+    missions[i].i = i;
+  }
+
+  srand(time(NULL));
+  for (int i = 0; i < missionNum; i++) {
+    x = rand() % missionNum, y = rand() % missionNum;
+    std::swap(missions[x], missions[y]);
+  }
+  for (int i = 0; i < missionNum; i++) {
+    missionsOriginIndex[missions[i].i] = i;
   }
 }
 
@@ -262,7 +274,8 @@ void output() {
   for (int i = 0; i < extraEdgeNum; i++) {
     writeln(edges[m + i].x, edges[m + i].y);
   }
-  for (int i = 0; i < missionNum; i++) {
+  for (int ind = 0, i; ind < missionNum; ind++) {
+    i = missionsOriginIndex[ind];
     write_(missions[i].ansChannel, missions[i].ansEdges.size(), missions[i].ansAmplifier.size());
     for (auto j: missions[i].ansEdges) {
       write_(j);
