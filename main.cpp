@@ -101,7 +101,9 @@ struct Mission {
   int ansChannel;
   std::vector<int> ansEdges;
   std::vector<int> ansAmplifier;
+  int i;
 } missions[MAX_MISSION_NUM];
+int missionsOriginIndex[MAX_MISSION_NUM];
 std::vector<int> edgeFromNode[MAX_NODE_NUM];
 /************************************* Definition End *************************************/
 
@@ -133,12 +135,21 @@ void input() {
   for (int i = 0; i < missionNum; i++) {
     read(missions[i].s, missions[i].t);
     missions[i].solved = false;
+    missions[i].i = i;
+  }
+
+  srand(time(NULL));
+  for (int i = 0; i < missionNum; i++) {
+    x = rand() % missionNum, y = rand() % missionNum;
+    std::swap(missions[x], missions[y]);
+  }
+  for (int i = 0; i < missionNum; i++) {
+    missionsOriginIndex[missions[i].i] = i;
   }
 }
 
 void addExtraEdge(int x, int y) {
   extraEdgeNum++;
-  if (extraEdgeNum > 5) exit(0);
   // std::cout<<"Extra Edge Added ";writeln(extraEdgeNum, x, y, minDisBetweenNodes[x][y]);
   edges[m + extraEdgeNum - 1] = (Edge){
     x, y, minDisBetweenNodes[x][y], INIT_CHANNEL
@@ -171,14 +182,14 @@ bool solveOneMission(int missionIndex, bool isAllowIgnoreChannelLimit) {
     minDis[i] = INF_INT;
     minEdgeNum[i] = INF_INT;
     visited[i] = false;
-    // from[i] = -1;
+    from[i] = -1;
     invalidEdgeUsed[i] = INF_INT;
   }
   minDis[s] = 0;
   minEdgeNum[s] = 0;
   invalidEdgeUsed[s] = 0;
   std::vector<int>tmp;
-  q.push((Node){s, 0, 0, 0, INIT_CHANNEL, 0, tmp});
+  q.push((Node){s, 0, 0, -1, INIT_CHANNEL, 0, tmp});
   int x;
   Node node;
   int ansChannelIndex = 0;
@@ -187,13 +198,14 @@ bool solveOneMission(int missionIndex, bool isAllowIgnoreChannelLimit) {
     q.pop();
     x = node.x;
     // std::cout<<"Dist ";write_(s, x, node.dis, node.edgeNum, node.invalidEdgeUsed, minDis[x], minEdgeNum[x]);std::cout<<node.channel<<std::endl;
-    if (visited[x] && (node.dis != minDis[x] || node.edgeNum != minEdgeNum[x])) continue;
+    if (visited[x]) continue; // && (node.dis != minDis[x] || node.edgeNum != minEdgeNum[x] || node.invalidEdgeUsed != invalidEdgeUsed[x])) continue;
     // std::cout<<node.x<<' '<<node.dis<<' '<<node.edgeNum<<' '<<node.invalidEdgeUsed<<' '<<node.channel<<std::endl;
     visited[x] = true;
-    // from[x] = node.from;
+    from[x] = node.from;
     if (x == t) {
       ansChannelIndex = node.channel._Find_first();
       qAns.push(node);
+      break;
     }
     for (auto i: edgeFromNode[x]) {
       int isInvalid = !(edges[i].channelNotUsed & node.channel).any();
@@ -207,9 +219,9 @@ bool solveOneMission(int missionIndex, bool isAllowIgnoreChannelLimit) {
             minDis[y] = minDis[x] + edges[i].dis;
             minEdgeNum[y] = minEdgeNum[x] + 1;
             invalidEdgeUsed[y] = invalidEdgeUsed[x] + isInvalid;
-            tmp = node.ansEdges;
-            tmp.push_back(i);
-            q.push((Node){y, minDis[y], minEdgeNum[y], i, isInvalid && false ? node.channel : edges[i].channelNotUsed & node.channel, invalidEdgeUsed[y], tmp});
+            // tmp = node.ansEdges;
+            // tmp.push_back(i);
+            q.push((Node){y, minDis[y], minEdgeNum[y], i, isInvalid ? node.channel : edges[i].channelNotUsed & node.channel, invalidEdgeUsed[y], tmp});
           }
     }
   }
@@ -217,16 +229,18 @@ bool solveOneMission(int missionIndex, bool isAllowIgnoreChannelLimit) {
   // std::cout<<"OK"<<std::endl;
   std::vector<int> ansEdgeIndex;
   int y;
-  // x = t;
-  // while (from[x] != -1) {
-  //   ansEdgeIndex.push_back(from[x]);
-  //   x = _y(edges[from[x]], x);
-  // }
+  x = t;
+  while (from[x] != -1) {
+    // writeln(s, t, x, from[x]);
+    ansEdgeIndex.push_back(from[x]);
+    x = _y(edges[from[x]], x);
+  }
   tmp = qAns.top().ansEdges;
   std::bitset<MAX_CHANNEL_NUM> bs = INIT_CHANNEL;
   int nowDis = maxDis;
   x = s;
-  for (auto it = tmp.begin(); it != tmp.end(); it++) {
+  // for (auto it = tmp.begin(); it != tmp.end(); it++) {
+  for (auto it = ansEdgeIndex.rbegin(); it != ansEdgeIndex.rend(); it++) {
     y = _y(edges[*it], x);
     // writeln(x, y, minDis[y]);
     if (!isAllowIgnoreChannelLimit) {
@@ -260,7 +274,8 @@ void output() {
   for (int i = 0; i < extraEdgeNum; i++) {
     writeln(edges[m + i].x, edges[m + i].y);
   }
-  for (int i = 0; i < missionNum; i++) {
+  for (int ind = 0, i; ind < missionNum; ind++) {
+    i = missionsOriginIndex[ind];
     write_(missions[i].ansChannel, missions[i].ansEdges.size(), missions[i].ansAmplifier.size());
     for (auto j: missions[i].ansEdges) {
       write_(j);
