@@ -1,3 +1,6 @@
 *.exe
 %LocalAppData%
 .vscode
+main
+debug
+release
