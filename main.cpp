@@ -138,7 +138,6 @@ void input() {
 
 void addExtraEdge(int x, int y) {
   extraEdgeNum++;
-  if (extraEdgeNum > 5) exit(0);
   // std::cout<<"Extra Edge Added ";writeln(extraEdgeNum, x, y, minDisBetweenNodes[x][y]);
   edges[m + extraEdgeNum - 1] = (Edge){
     x, y, minDisBetweenNodes[x][y], INIT_CHANNEL
@@ -187,7 +186,7 @@ bool solveOneMission(int missionIndex, bool isAllowIgnoreChannelLimit) {
     q.pop();
     x = node.x;
     // std::cout<<"Dist ";write_(s, x, node.dis, node.edgeNum, node.invalidEdgeUsed, minDis[x], minEdgeNum[x]);std::cout<<node.channel<<std::endl;
-    if (visited[x] && (node.dis != minDis[x] || node.edgeNum != minEdgeNum[x])) continue;
+    if (visited[x] && (node.dis != minDis[x] || node.edgeNum != minEdgeNum[x] || node.invalidEdgeUsed != invalidEdgeUsed[x])) continue;
     // std::cout<<node.x<<' '<<node.dis<<' '<<node.edgeNum<<' '<<node.invalidEdgeUsed<<' '<<node.channel<<std::endl;
     visited[x] = true;
     // from[x] = node.from;
@@ -209,7 +208,7 @@ bool solveOneMission(int missionIndex, bool isAllowIgnoreChannelLimit) {
             invalidEdgeUsed[y] = invalidEdgeUsed[x] + isInvalid;
             tmp = node.ansEdges;
             tmp.push_back(i);
-            q.push((Node){y, minDis[y], minEdgeNum[y], i, isInvalid && false ? node.channel : edges[i].channelNotUsed & node.channel, invalidEdgeUsed[y], tmp});
+            q.push((Node){y, minDis[y], minEdgeNum[y], i, isInvalid ? node.channel : edges[i].channelNotUsed & node.channel, invalidEdgeUsed[y], tmp});
           }
     }
   }
