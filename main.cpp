@@ -170,14 +170,14 @@ bool solveOneMission(int missionIndex, bool isAllowIgnoreChannelLimit) {
     minDis[i] = INF_INT;
     minEdgeNum[i] = INF_INT;
     visited[i] = false;
-    // from[i] = -1;
+    from[i] = -1;
     invalidEdgeUsed[i] = INF_INT;
   }
   minDis[s] = 0;
   minEdgeNum[s] = 0;
   invalidEdgeUsed[s] = 0;
   std::vector<int>tmp;
-  q.push((Node){s, 0, 0, 0, INIT_CHANNEL, 0, tmp});
+  q.push((Node){s, 0, 0, -1, INIT_CHANNEL, 0, tmp});
   int x;
   Node node;
   int ansChannelIndex = 0;
@@ -186,13 +186,14 @@ bool solveOneMission(int missionIndex, bool isAllowIgnoreChannelLimit) {
     q.pop();
     x = node.x;
     // std::cout<<"Dist ";write_(s, x, node.dis, node.edgeNum, node.invalidEdgeUsed, minDis[x], minEdgeNum[x]);std::cout<<node.channel<<std::endl;
-    if (visited[x] && (node.dis != minDis[x] || node.edgeNum != minEdgeNum[x] || node.invalidEdgeUsed != invalidEdgeUsed[x])) continue;
+    if (visited[x]) continue; // && (node.dis != minDis[x] || node.edgeNum != minEdgeNum[x] || node.invalidEdgeUsed != invalidEdgeUsed[x])) continue;
     // std::cout<<node.x<<' '<<node.dis<<' '<<node.edgeNum<<' '<<node.invalidEdgeUsed<<' '<<node.channel<<std::endl;
     visited[x] = true;
-    // from[x] = node.from;
+    from[x] = node.from;
     if (x == t) {
       ansChannelIndex = node.channel._Find_first();
       qAns.push(node);
+      break;
     }
     for (auto i: edgeFromNode[x]) {
       int isInvalid = !(edges[i].channelNotUsed & node.channel).any();
@@ -206,8 +207,8 @@ bool solveOneMission(int missionIndex, bool isAllowIgnoreChannelLimit) {
             minDis[y] = minDis[x] + edges[i].dis;
             minEdgeNum[y] = minEdgeNum[x] + 1;
             invalidEdgeUsed[y] = invalidEdgeUsed[x] + isInvalid;
-            tmp = node.ansEdges;
-            tmp.push_back(i);
+            // tmp = node.ansEdges;
+            // tmp.push_back(i);
             q.push((Node){y, minDis[y], minEdgeNum[y], i, isInvalid ? node.channel : edges[i].channelNotUsed & node.channel, invalidEdgeUsed[y], tmp});
           }
     }
@@ -216,16 +217,18 @@ bool solveOneMission(int missionIndex, bool isAllowIgnoreChannelLimit) {
   // std::cout<<"OK"<<std::endl;
   std::vector<int> ansEdgeIndex;
   int y;
-  // x = t;
-  // while (from[x] != -1) {
-  //   ansEdgeIndex.push_back(from[x]);
-  //   x = _y(edges[from[x]], x);
-  // }
+  x = t;
+  while (from[x] != -1) {
+    // writeln(s, t, x, from[x]);
+    ansEdgeIndex.push_back(from[x]);
+    x = _y(edges[from[x]], x);
+  }
   tmp = qAns.top().ansEdges;
   std::bitset<MAX_CHANNEL_NUM> bs = INIT_CHANNEL;
   int nowDis = maxDis;
   x = s;
-  for (auto it = tmp.begin(); it != tmp.end(); it++) {
+  // for (auto it = tmp.begin(); it != tmp.end(); it++) {
+  for (auto it = ansEdgeIndex.rbegin(); it != ansEdgeIndex.rend(); it++) {
     y = _y(edges[*it], x);
     // writeln(x, y, minDis[y]);
     if (!isAllowIgnoreChannelLimit) {
