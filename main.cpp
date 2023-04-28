@@ -139,7 +139,7 @@ void input() {
 void addExtraEdge(int x, int y) {
   extraEdgeNum++;
   if (extraEdgeNum > 5) exit(0);
-  // std::cout<<"Extra Edge Added ";writeln(extraEdgeNum, x, y);
+  // std::cout<<"Extra Edge Added ";writeln(extraEdgeNum, x, y, minDisBetweenNodes[x][y]);
   edges[m + extraEdgeNum - 1] = (Edge){
     x, y, minDisBetweenNodes[x][y], INIT_CHANNEL
   };
@@ -186,6 +186,7 @@ bool solveOneMission(int missionIndex, bool isAllowIgnoreChannelLimit) {
     node = q.top();
     q.pop();
     x = node.x;
+    // std::cout<<"Dist ";write_(s, x, node.dis, node.edgeNum, node.invalidEdgeUsed, minDis[x], minEdgeNum[x]);std::cout<<node.channel<<std::endl;
     if (visited[x] && (node.dis != minDis[x] || node.edgeNum != minEdgeNum[x])) continue;
     // std::cout<<node.x<<' '<<node.dis<<' '<<node.edgeNum<<' '<<node.invalidEdgeUsed<<' '<<node.channel<<std::endl;
     visited[x] = true;
@@ -201,8 +202,8 @@ bool solveOneMission(int missionIndex, bool isAllowIgnoreChannelLimit) {
       }
       int y = _y(edges[i], x);
       if ((invalidEdgeUsed[y] > invalidEdgeUsed[x] + isInvalid) ||
-          (invalidEdgeUsed[y] > invalidEdgeUsed[x] + isInvalid && minDis[y] > minDis[x] + edges[i].dis) || 
-          (invalidEdgeUsed[y] > invalidEdgeUsed[x] + isInvalid && minDis[y] == minDis[x] + edges[i].dis && minEdgeNum[y] > minEdgeNum[x] + 1)) {
+          (invalidEdgeUsed[y] == invalidEdgeUsed[x] + isInvalid && minDis[y] > minDis[x] + edges[i].dis) || 
+          (invalidEdgeUsed[y] == invalidEdgeUsed[x] + isInvalid && minDis[y] == minDis[x] + edges[i].dis && minEdgeNum[y] > minEdgeNum[x] + 1)) {
             minDis[y] = minDis[x] + edges[i].dis;
             minEdgeNum[y] = minEdgeNum[x] + 1;
             invalidEdgeUsed[y] = invalidEdgeUsed[x] + isInvalid;
@@ -227,15 +228,17 @@ bool solveOneMission(int missionIndex, bool isAllowIgnoreChannelLimit) {
   x = s;
   for (auto it = tmp.begin(); it != tmp.end(); it++) {
     y = _y(edges[*it], x);
+    // writeln(x, y, minDis[y]);
     if (!isAllowIgnoreChannelLimit) {
       missions[missionIndex].ansEdges.push_back(*it);
       edges[*it].channelNotUsed[ansChannelIndex] = 0;
       if (nowDis < edges[*it].dis) {
         missions[missionIndex].ansAmplifier.push_back(x);
-        nowDis = maxDis;
+        nowDis = maxDis - edges[*it].dis;
       } else {
         nowDis -= edges[*it].dis;
       }
+      // std::cout<<"Count amp ";writeln(s, t, *it, nowDis, edges[*it].dis);
     }
     if (!(bs & edges[*it].channelNotUsed).any()) {
       edgesUsed[x][y]++;
