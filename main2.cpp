@@ -166,11 +166,11 @@ struct Node {
 };
 int minDis[MAX_NODE_NUM], minEdgeNum[MAX_NODE_NUM];
 double f(int invalidEdgeUsed, int dis, int edgeNum) {
-  return invalidEdgeUsed * 10000.0 + dis * 1.0 + edgeNum * 0.01;
+  return invalidEdgeUsed * 1000.0 + dis * 1.0 + edgeNum * 0.01;
 }
 bool operator< (const Node &a, const Node &b) {
-  return f(a.invalidEdgeUsed, a.dis, a.edgeNum) > f(b.invalidEdgeUsed, b.dis, b.edgeNum);
-  // return a.invalidEdgeUsed == b.invalidEdgeUsed ? (a.dis == b.dis ? a.edgeNum > b.edgeNum : a.dis > b.dis) : a.invalidEdgeUsed > b.invalidEdgeUsed;
+  // return f(a.invalidEdgeUsed, a.dis, a.edgeNum) > f(b.invalidEdgeUsed, b.dis, b.edgeNum);
+  return a.invalidEdgeUsed == b.invalidEdgeUsed ? (a.dis == b.dis ? a.edgeNum > b.edgeNum : a.dis > b.dis) : a.invalidEdgeUsed > b.invalidEdgeUsed;
 }
 std::priority_queue<Node> q;
 std::priority_queue<Node> qAns;
@@ -217,10 +217,10 @@ bool solveOneMission(int missionIndex, bool isAllowIgnoreChannelLimit) {
         continue;
       }
       int y = _y(edges[i], x);
-      // if ((invalidEdgeUsed[y] > invalidEdgeUsed[x] + isInvalid) ||
-      //     (invalidEdgeUsed[y] == invalidEdgeUsed[x] + isInvalid && (minDis[y] > minDis[x] + (isInvalid ? minDisBetweenNodes[x][y] : edges[i].dis))) || 
-      //     (invalidEdgeUsed[y] == invalidEdgeUsed[x] + isInvalid && (minDis[y] == minDis[x] + (isInvalid ? minDisBetweenNodes[x][y] : edges[i].dis)) && minEdgeNum[y] > minEdgeNum[x] + 1)) {
-        if (f(invalidEdgeUsed[y], minDis[y], minEdgeNum[y]) > f(invalidEdgeUsed[x] + isInvalid, minDis[x] + (isInvalid ? minDisBetweenNodes[x][y] : edges[i].dis), minEdgeNum[x] + 1)) {
+      if ((invalidEdgeUsed[y] > invalidEdgeUsed[x] + isInvalid) ||
+          (invalidEdgeUsed[y] == invalidEdgeUsed[x] + isInvalid && minDis[y] > minDis[x] + isInvalid ? minDisBetweenNodes[x][y] : edges[i].dis) || 
+          (invalidEdgeUsed[y] == invalidEdgeUsed[x] + isInvalid && minDis[y] == minDis[x] + isInvalid ? minDisBetweenNodes[x][y] : edges[i].dis && minEdgeNum[y] > minEdgeNum[x] + 1)) {
+        // if (f(invalidEdgeUsed[y], minDis[y], minEdgeNum[y]) > f(invalidEdgeUsed[x] + isInvalid, minDis[x] + isInvalid ? minDisBetweenNodes[x][y] : edges[i].dis, minEdgeNum[x] + 1)) {
             minDis[y] = minDis[x] + edges[i].dis;
             minEdgeNum[y] = minEdgeNum[x] + 1;
             invalidEdgeUsed[y] = invalidEdgeUsed[x] + isInvalid;
@@ -259,11 +259,10 @@ bool solveOneMission(int missionIndex, bool isAllowIgnoreChannelLimit) {
       }
       // std::cout<<"Count amp ";writeln(s, t, *it, nowDis, edges[*it].dis);
     }
-    if (!(bs & edges[*it].channelNotUsed).any() && edges[*it].channelNotUsed != INIT_CHANNEL) {
+    if (!(bs & edges[*it].channelNotUsed).any()) {
       // edgesUsed[x][y]++;
       // edgesUsed[y][x]++;
-      // if (extraEdgeNum == 912) std::cout<<INIT_CHANNEL<<' '<<edges[*it].channelNotUsed<<std::endl;
-      int tmp = maxDis - minDisBetweenNodes[x][y] + 1;
+      int tmp = maxDis - minDisBetweenNodes[x][y];
       edgesUsed[x][y] += tmp;
       edgesUsed[y][x] += tmp;
     } else {
@@ -299,7 +298,7 @@ void output() {
 void solve() {
   int solvedMissionNum = 0;
   while (solvedMissionNum != missionNum) {
-    // writeln(solvedMissionNum);
+    writeln(solvedMissionNum);
     for (int i = 0; i < missionNum; i++) if (!missions[i].solved) {
       if (solveOneMission(i, false)) {
         solvedMissionNum++;
