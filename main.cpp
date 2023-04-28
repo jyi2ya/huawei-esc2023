@@ -202,7 +202,7 @@ bool solveOneMission(int missionIndex, bool isAllowIgnoreChannelLimit) {
       }
       int y = _y(edges[i], x);
       if ((invalidEdgeUsed[y] > invalidEdgeUsed[x] + isInvalid) ||
-          (invalidEdgeUsed[y] == invalidEdgeUsed[x] + isInvalid && minDis[y] > minDis[x] + edges[i].dis) || 
+          (invalidEdgeUsed[y] == invalidEdgeUsed[x] + isInvalid && minDis[y] > minDis[x] + edges[i].dis) ||
           (invalidEdgeUsed[y] == invalidEdgeUsed[x] + isInvalid && minDis[y] == minDis[x] + edges[i].dis && minEdgeNum[y] > minEdgeNum[x] + 1)) {
             minDis[y] = minDis[x] + edges[i].dis;
             minEdgeNum[y] = minEdgeNum[x] + 1;
@@ -315,7 +315,7 @@ int main() {
   solve();
   output();
 #ifdef LOCAL_LIGEN
-  printf("Time: %.0lfms\n", clock() - PROGRAM_BEGIN_TIME);
+  printf("Time: %.0lfms\n", (clock() - PROGRAM_BEGIN_TIME) * 1e6 / CLOCKS_PER_SEC);
   fclose(stdin);
   fclose(stdout);
 #endif
