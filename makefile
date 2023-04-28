@@ -2,7 +2,8 @@ debug: main.cpp
 	g++ main.cpp -o debug -Wall -Wextra -Wshadow -Og -g -fsanitize=address -DLOCAL_LIGEN
 
 test: debug
-	./debug
+	./debug > result.txt
+	perl validator.pl 0.in result.txt
 
 release: main.cpp
 	g++ main.cpp -o release -O2
